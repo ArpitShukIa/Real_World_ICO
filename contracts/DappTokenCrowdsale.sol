@@ -1,6 +1,8 @@
 pragma solidity ^0.4.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/MintableToken.sol";
+import "@openzeppelin/contracts/token/ERC20/PausableToken.sol";
 import "@openzeppelin/contracts/crowdsale/emission/MintedCrowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/validation/CappedCrowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/validation/TimedCrowdsale.sol";
@@ -37,10 +39,10 @@ contract DappTokenCrowdsale is MintedCrowdsale, CappedCrowdsale, TimedCrowdsale,
     }
 
     /**
-    * @dev Returns the amount contributed so far by a specific user.
-    * @param _beneficiary Address of contributor
-    * @return User contribution so far
-    */
+     * @dev Returns the amount contributed so far by a specific user.
+     * @param _beneficiary Address of contributor
+     * @return User contribution so far
+     */
     function getUserContribution(address _beneficiary)
     public view returns (uint256)
     {
@@ -48,9 +50,9 @@ contract DappTokenCrowdsale is MintedCrowdsale, CappedCrowdsale, TimedCrowdsale,
     }
 
     /**
-    * @dev Allows admin to update the crowdsale stage
-    * @param _stage Crowdsale stage
-    */
+     * @dev Allows admin to update the crowdsale stage
+     * @param _stage Crowdsale stage
+     */
     function setCrowdsaleStage(uint _stage) public onlyOwner {
         if (uint(CrowdsaleStage.PreICO) == _stage) {
             stage = CrowdsaleStage.PreICO;
@@ -66,8 +68,8 @@ contract DappTokenCrowdsale is MintedCrowdsale, CappedCrowdsale, TimedCrowdsale,
     }
 
     /**
-    * @dev forwards funds to the wallet during the PreICO stage, then the refund vault during ICO stage
-    */
+     * @dev forwards funds to the wallet during the PreICO stage, then the refund vault during ICO stage
+     */
     function _forwardFunds() internal {
         if (stage == CrowdsaleStage.PreICO) {
             wallet.transfer(msg.value);
@@ -77,10 +79,10 @@ contract DappTokenCrowdsale is MintedCrowdsale, CappedCrowdsale, TimedCrowdsale,
     }
 
     /**
-    * @dev Extend parent behavior requiring purchase to respect investor min/max funding cap.
-    * @param _beneficiary Token purchaser
-    * @param _weiAmount Amount of wei contributed
-    */
+     * @dev Extend parent behavior requiring purchase to respect investor min/max funding cap.
+     * @param _beneficiary Token purchaser
+     * @param _weiAmount Amount of wei contributed
+     */
     function _preValidatePurchase(
         address _beneficiary,
         uint256 _weiAmount
@@ -94,4 +96,19 @@ contract DappTokenCrowdsale is MintedCrowdsale, CappedCrowdsale, TimedCrowdsale,
         contributions[_beneficiary] = _newContribution;
     }
 
+
+    /**
+     * @dev enables token transfers, called when owner calls finalize()
+     */
+    function finalization() internal {
+        if (goalReached()) {
+            MintableToken _mintableToken = MintableToken(token);
+            _mintableToken.finishMinting();
+
+            PausableToken _pausableToken = PausableToken(token);
+            _pausableToken.unpause();
+        }
+
+        super.finalization();
+    }
 }

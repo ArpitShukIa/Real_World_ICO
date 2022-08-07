@@ -1,5 +1,4 @@
 from brownie import chain, DappToken, DappTokenCrowdsale
-from web3 import Web3
 
 from scripts.helpful_scripts import get_account, ether
 
@@ -20,6 +19,7 @@ def deploy():
         CROWDSALE_RATE, wallet, dapp_token, CAP, opening_time, closing_time, GOAL,
         {'from': account}
     )
+    dapp_token.pause()
     dapp_token.transferOwnership(dapp_token_crowdsale)
     return dapp_token, dapp_token_crowdsale
 
