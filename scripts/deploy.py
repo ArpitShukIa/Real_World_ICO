@@ -1,11 +1,11 @@
 from brownie import chain, DappToken, DappTokenCrowdsale
 from web3 import Web3
 
-from scripts.helpful_scripts import get_account
+from scripts.helpful_scripts import get_account, ether
 
 CROWDSALE_RATE = 500
-CAP = Web3.toWei(100, 'ether')
-GOAL = Web3.toWei(50, 'ether')
+CAP = ether(100)
+GOAL = ether(50)
 
 WEEK_IN_SECONDS = 7 * 24 * 60 * 60  # Seconds in 1 week
 
